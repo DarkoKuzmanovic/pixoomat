@@ -1,0 +1,9 @@
+pixoo>=0.9.2
+zeroconf>=0.112.0
+
+# For GUI support (Tkinter is usually included with Python, but listed here for reference)
+# If Tkinter is not available on your system, install it with your system package manager
+# On Ubuntu/Debian: sudo apt-get install python3-tk
+# On Fedora: sudo dnf install python3-tkinter
+# On macOS: Tkinter comes with Python from python.org
+# On Windows: Tkinter is included with Python
