@@ -5,8 +5,6 @@ import tkinter as tk
 from tkinter import ttk
 
 from widgets.base_widget import BaseWidget
-from widgets.clock_widget import ClockWidget
-from widgets.weather_widget import WeatherWidget
 
 
 class PropertyPanel:
@@ -74,9 +72,9 @@ class PropertyPanel:
         # Create specific property editors based on widget type
         if hasattr(widget, 'get_property_schema'):
             self._create_dynamic_properties(widget)
-        elif isinstance(widget, ClockWidget):
+        elif widget.__class__.__name__ == 'ClockWidget' or 'Clock' in widget.__class__.__name__:
             self._create_clock_properties(widget)
-        elif isinstance(widget, WeatherWidget):
+        elif widget.__class__.__name__ == 'WeatherWidget' or 'Weather' in widget.__class__.__name__:
             self._create_weather_properties(widget)
         else:
             self._create_base_properties(widget)
@@ -258,7 +256,7 @@ class PropertyPanel:
         interval_var.trace('w', lambda *args: on_change())
         visible_var.trace('w', lambda *args: on_change())
 
-    def _create_clock_properties(self, widget: ClockWidget):
+    def _create_clock_properties(self, widget: BaseWidget):
         """Create property editors specific to ClockWidget"""
         self._create_base_properties(widget)
 
@@ -364,7 +362,7 @@ class PropertyPanel:
         g_var.trace('w', lambda *args: on_clock_change())
         b_var.trace('w', lambda *args: on_clock_change())
 
-    def _create_weather_properties(self, widget: WeatherWidget):
+    def _create_weather_properties(self, widget: BaseWidget):
         """Create property editors specific to WeatherWidget"""
         self._create_base_properties(widget)
 

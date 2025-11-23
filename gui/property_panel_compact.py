@@ -6,8 +6,8 @@ from tkinter import ttk, colorchooser
 from typing import Optional
 
 from widgets.base_widget import BaseWidget
-from widgets.clock_widget import ClockWidget
-from widgets.weather_widget import WeatherWidget
+from widgets.plugins.clock_widget import ClockWidget
+from widgets.plugins.weather_widget import WeatherWidget
 
 
 class CompactPropertyPanel:

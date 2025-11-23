@@ -7,7 +7,7 @@ import copy
 from typing import Optional, Union, Tuple
 
 from layout_manager import LayoutManager
-from widgets import ClockWidget, WeatherWidget, get_plugin_manager
+from widgets import get_plugin_manager
 from config import PixoomatConfig
 from gui.property_panel_compact import CompactPropertyPanel
 from gui.device_panel_compact import CompactDevicePanel
@@ -863,15 +863,20 @@ Features:
 
     def _add_clock_widget(self):
         """Add a clock widget"""
-        widget = ClockWidget()
-        self._add_widget(widget)
+        plugin_manager = get_plugin_manager()
+        widget = plugin_manager.create_widget("Clock")
+        if widget:
+            self._add_widget(widget)
 
     def _add_weather_widget(self):
         """Add a weather widget"""
-        widget = WeatherWidget()
-        # Connect weather service
-        widget.get_weather_data = self.weather_service.get_weather
-        self._add_widget(widget)
+        plugin_manager = get_plugin_manager()
+        widget = plugin_manager.create_widget("Weather")
+        if widget:
+            # Connect weather service
+            if hasattr(widget, 'get_weather_data'):
+                widget.get_weather_data = self.weather_service.get_weather
+            self._add_widget(widget)
 
     def _add_plugin_widget(self, plugin_name: str):
         """Add a plugin widget"""
@@ -1012,36 +1017,41 @@ Features:
 
     def _setup_default_layout(self):
         """Setup default layout for backward compatibility"""
+        plugin_manager = get_plugin_manager()
+
         # Create clock widget
-        clock_widget = ClockWidget()
-        clock_widget.update_interval = self.config.update_interval
-        clock_widget.set_property('time_format', self.config.time_format)
-        clock_widget.set_property('text_color', self.config.text_color)
+        clock_widget = plugin_manager.create_widget("Clock")
+        if clock_widget:
+            clock_widget.update_interval = self.config.update_interval
+            clock_widget.set_property('time_format', self.config.time_format)
+            clock_widget.set_property('text_color', self.config.text_color)
 
-        # Center clock widget
-        clock_x = self.config.screen_size // 2 - clock_widget.width // 2
-        clock_y = self.config.screen_size // 2 - clock_widget.height // 2
-        clock_widget.set_position(clock_x, clock_y)
+            # Center clock widget
+            clock_x = self.config.screen_size // 2 - clock_widget.width // 2
+            clock_y = self.config.screen_size // 2 - clock_widget.height // 2
+            clock_widget.set_position(clock_x, clock_y)
 
-        # Add to layout
-        self.layout_manager.add_widget(clock_widget)
+            # Add to layout
+            self.layout_manager.add_widget(clock_widget)
 
         # Create weather widget if enabled
         if self.config.show_weather:
-            weather_widget = WeatherWidget()
-            weather_widget.set_property('text_color', self.config.text_color)
+            weather_widget = plugin_manager.create_widget("Weather")
+            if weather_widget:
+                weather_widget.set_property('text_color', self.config.text_color)
 
-            # Position weather widget at bottom right
-            weather_x = self.config.screen_size - weather_widget.width - 2
-            weather_y = self.config.screen_size - weather_widget.height - 2
-            weather_widget.set_position(weather_x, weather_y)
-            weather_widget.z_index = 1  # Place above clock if overlapping
+                # Position weather widget at bottom right
+                weather_x = self.config.screen_size - weather_widget.width - 2
+                weather_y = self.config.screen_size - weather_widget.height - 2
+                weather_widget.set_position(weather_x, weather_y)
+                weather_widget.z_index = 1  # Place above clock if overlapping
 
-            # Connect weather service to widget
-            weather_widget.get_weather_data = self.weather_service.get_weather
+                # Connect weather service to widget
+                if hasattr(weather_widget, 'get_weather_data'):
+                    weather_widget.get_weather_data = self.weather_service.get_weather
 
-            # Add to layout
-            self.layout_manager.add_widget(weather_widget)
+                # Add to layout
+                self.layout_manager.add_widget(weather_widget)
 
         # Set background color
         self.layout_manager.background_color = self.config.background_color
@@ -1061,8 +1071,9 @@ Features:
 
             # Connect weather service to weather widgets
             for widget in self.layout_manager.widgets:
-                if isinstance(widget, WeatherWidget):
-                    widget.get_weather_data = self.weather_service.get_weather
+                if widget.__class__.__name__ == 'WeatherWidget' or 'Weather' in widget.__class__.__name__:
+                    if hasattr(widget, 'get_weather_data'):
+                        widget.get_weather_data = self.weather_service.get_weather
 
             # Update display
             self._update_canvas()

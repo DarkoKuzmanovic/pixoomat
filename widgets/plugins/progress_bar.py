@@ -8,12 +8,8 @@ progress with configurable colors and styles.
 from typing import Dict, Any, Tuple, Optional
 from PIL import Image, ImageDraw
 
-try:
-    from ..base_widget import BaseWidget
-    from ..plugin_system import WidgetPlugin, WidgetMetadata
-except ImportError:
-    from base_widget import BaseWidget
-    from plugin_system import WidgetPlugin, WidgetMetadata
+from widgets.base_widget import BaseWidget
+from widgets.plugin_system import WidgetPlugin, WidgetMetadata
 
 
 class ProgressBarWidget(BaseWidget):

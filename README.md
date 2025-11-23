@@ -10,7 +10,15 @@ Pixoomat is a Python application that connects to your Divoom Pixoo 64 device an
 - 🔍 **Auto Discovery** - Automatically finds Pixoo devices on your network
 - 🎨 **Customizable** - Configure colors, brightness, time format
 - 🖥️ **Compact GUI** - Visual widget layout designer for custom displays
-- 🔄 **Robust** - Handles disconnections and automatic reconnection
+- 🔧 **Widget System** - Extensible plugin architecture with multiple widget types:
+  - **Clock Widget** - Time display with 12/24 hour formats and seconds
+  - **Weather Widget** - Current temperature with Celsius/Fahrenheit support
+  - **Date Widget** - Configurable date formats with day of week
+  - **Countdown Widget** - Countdown to specific dates and times
+  - **ProgressBarWidget** - Visual progress indicators with customizable colors
+  - **SimpleTextWidget** - Custom text with font and color options
+  - **System Stats Widget** - CPU, memory, and disk usage monitoring
+- **Robust** - Handles disconnections and automatic reconnection
 - 📱 **Cross-platform** - Works on Windows, macOS, and Linux
 - 🛠️ **Easy Setup** - Simple CLI with multiple configuration options
 
@@ -75,6 +83,7 @@ Pixoomat is a Python application that connects to your Divoom Pixoo 64 device an
 | `--save-config`   | Save settings to config file                | None          |
 | `--use-gui`       | Launch Compact GUI for widget layout design | False         |
 | `--layout-config` | Path to widget layout configuration file    | None          |
+| `--no-weather`    | Disable weather display                     | False         |
 
 ### Configuration File
 
@@ -126,11 +135,12 @@ python main.py --use-gui
 
 ### GUI Features
 
-- **Widget Palette**: Add clock, weather, text, and progress bar widgets
+- **Widget Palette**: Add clock, weather, date, countdown, progress bar, text, and system stats widgets
 - **Visual Canvas**: Drag and drop widgets to design your layout
-- **Property Editor**: Customize widget appearance and behavior
+- **Property Editor**: Customize widget appearance and behavior with real-time preview
 - **Device Management**: Connect to and test your Pixoo device
 - **File Operations**: Save and load widget layouts
+- **Plugin System**: Automatically discovers and loads available widgets
 
 ### GUI Workflow
 
@@ -223,6 +233,17 @@ pixoomat/
 ├── weather_service.py    # Weather data fetching
 ├── gui/                 # Compact GUI components
 ├── widgets/             # Widget system
+│   ├── base_widget.py   # Base widget class
+│   ├── plugin_system.py # Plugin management system
+│   └── plugins/         # Available widget plugins
+│       ├── clock_widget.py
+│       ├── weather_widget.py
+│       ├── date_widget.py
+│       ├── countdown_widget.py
+│       ├── progress_bar.py
+│       ├── simple_text.py
+│       └── system_stats_widget.py
+├── tests/              # Test suite
 ├── requirements.txt      # Python dependencies
 └── README.md           # This file
 ```
@@ -231,6 +252,36 @@ pixoomat/
 
 - **pixoo** (>=0.9.2) - Core Pixoo device library
 - **zeroconf** (>=0.112.0) - mDNS device discovery
+- **psutil** (>=5.8.0) - System statistics for System Stats widget
+- **Pillow** (PIL) - Image processing for widget rendering
+
+## 🧪 Testing
+
+Run the comprehensive test suite to ensure everything works correctly:
+
+```bash
+# Basic functionality test
+python tests/test_simulator.py
+
+# Widget system tests
+python tests/test_widget_system.py
+
+# Plugin system tests
+python tests/test_plugin_system.py
+
+# Widget serialization tests
+python tests/test_widget_serialization.py
+
+# GUI tests
+python tests/test_gui.py
+
+# Advanced GUI tests
+python tests/test_gui_advanced.py
+
+# Edge cases and fixes validation
+python tests/test_edge_cases.py
+python tests/test_fixes_validation.py
+```
 
 ## 🤝 Contributing
 
@@ -255,6 +306,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Network**: Place Pixoo close to router for better connectivity
 - **Power**: Use USB power for stability vs battery
 - **Brightness**: Lower brightness extends device lifespan
+- **Widget Development**: Create custom widgets using the plugin system - see [Widget Development Guide](WIDGET_DEVELOPMENT.md)
+- **System Stats**: The System Stats widget requires psutil and may need elevated permissions on some systems
 
 ## 🆘 Support
 

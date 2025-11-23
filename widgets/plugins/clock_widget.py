@@ -5,7 +5,8 @@ Displays the current time in various formats
 import datetime
 from typing import Dict, Any, Tuple, Optional
 
-from .base_widget import BaseWidget
+from widgets.base_widget import BaseWidget
+from widgets.plugin_system import WidgetPlugin, WidgetMetadata
 
 
 class ClockWidget(BaseWidget):
@@ -159,6 +160,44 @@ class ClockWidget(BaseWidget):
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> 'ClockWidget':
         """Create clock widget from dictionary representation"""
-        widget = super().from_dict(data)
-        # Note: Properties are already set by the base class method
+        # Extract properties that are part of the BaseWidget constructor
+        init_kwargs = {
+            'x': data.get('x', 0),
+            'y': data.get('y', 0),
+            'width': data.get('width'),
+            'height': data.get('height'),
+            'screen_size': data.get('screen_size', 64) # Assuming screen_size is passed or has a default
+        }
+
+        widget = cls(**init_kwargs)
+
+        # Restore BaseWidget attributes
+        widget.visible = data.get('visible', True)
+        widget.z_index = data.get('z_index', 0)
+        widget.update_interval = data.get('update_interval', 60)
+        widget.properties = data.get('properties', widget.properties)
+
         return widget
+
+
+class ClockWidgetPlugin(WidgetPlugin):
+    """Plugin for the ClockWidget."""
+
+    @property
+    def metadata(self) -> WidgetMetadata:
+        """Return metadata for this plugin."""
+        return WidgetMetadata(
+            name="Clock",
+            description="Displays the current time.",
+            version="1.0.0",
+            author="Pixoomat",
+            category="Time"
+        )
+
+    def create_widget(self, **kwargs) -> ClockWidget:
+        """Create an instance of the ClockWidget."""
+        return ClockWidget(**kwargs)
+
+    def get_property_schema(self) -> Dict[str, Any]:
+        """Return the property schema for the ClockWidget."""
+        return ClockWidget().get_property_schema()

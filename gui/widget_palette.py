@@ -1,14 +1,14 @@
 """
-Widget palette with grid layout and icons for compact display
+Widget palette with tree view layout for categorized widgets
 """
 import tkinter as tk
 from tkinter import ttk, messagebox
 from typing import Optional, Callable, List, Dict, Any
-from widgets import ClockWidget, WeatherWidget, get_plugin_manager
+from widgets import get_plugin_manager
 
 
 class WidgetPalette:
-    """Compact widget palette with grid layout"""
+    """Widget palette with categorized tree view"""
 
     def __init__(self, parent, on_widget_add: Optional[Callable] = None):
         """
@@ -37,138 +37,89 @@ class WidgetPalette:
         title_label = ttk.Label(self.frame, text="Widgets", font=('Arial', 10, 'bold'))
         title_label.pack(anchor=tk.W, pady=(0, 5))
 
-        # Create scrollable frame for widget grid
-        canvas = tk.Canvas(self.frame, highlightthickness=0)
-        scrollbar = ttk.Scrollbar(self.frame, orient="vertical", command=canvas.yview)
-        self.scrollable_frame = ttk.Frame(canvas)
+        # Create tree widget for categorized display
+        self.tree = ttk.Treeview(self.frame, columns=("type",), displaycolumns=())
+        self.tree.heading("#0", text="Category")
+        self.tree.column("#0", width=200)
 
-        self.scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
+        # Add scrollbar
+        scrollbar = ttk.Scrollbar(self.frame, orient="vertical", command=self.tree.yview)
+        self.tree.configure(yscrollcommand=scrollbar.set)
 
-        canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        canvas.pack(side="left", fill="both", expand=True)
+        self.tree.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
 
-        # Widget grid frame
-        self.grid_frame = ttk.Frame(self.scrollable_frame)
-        self.grid_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        # Bind double-click event for adding widgets
+        self.tree.bind("<Double-1>", self._on_tree_double_click)
 
     def _load_widgets(self):
-        """Load available widgets and create grid buttons"""
-        # Clear existing widgets
-        for widget in self.grid_frame.winfo_children():
-            widget.destroy()
+        """Load available widgets and create tree view"""
+        # Clear existing items
+        for item in self.tree.get_children():
+            self.tree.delete(item)
 
         self.widgets_info = []
 
-        # Built-in widgets
-        self.widgets_info.extend([
-            {
-                'name': 'Clock',
-                'class': ClockWidget,
-                'icon': '⏰',
-                'tooltip': 'Add Clock Widget',
-                'category': 'Display'
-            },
-            {
-                'name': 'Weather',
-                'class': WeatherWidget,
-                'icon': '🌤️',
-                'tooltip': 'Add Weather Widget',
-                'category': 'Data'
-            }
-        ])
-
-        # Plugin widgets
+        # Plugin widgets (including clock and weather)
         try:
             plugin_manager = get_plugin_manager()
             plugin_widgets = plugin_manager.list_plugins()
 
             for plugin_meta in plugin_widgets:
+                # Use plugin-specific icons for clock and weather
+                icon = '⏰' if plugin_meta.name == 'Clock' else '🌤️' if plugin_meta.name == 'Weather' else '🔌'
+
                 self.widgets_info.append({
                     'name': plugin_meta.name,
                     'class': plugin_manager.create_widget,
-                    'icon': '🔌',
+                    'icon': icon,
                     'tooltip': f'Add {plugin_meta.name}',
-                    'category': 'Plugin'
+                    'category': plugin_meta.category
                 })
         except Exception as e:
-            print(f"Warning: Failed to load plugin widgets: {e}")
+            pass
 
-        # Create grid buttons
-        self._create_widget_grid()
+        # Create tree view with categories
+        self._create_widget_tree()
 
-    def _create_widget_grid(self):
-        """Create grid of widget buttons"""
-        row = 0
-        col = 0
-        max_cols = 3  # 3 columns for compact display
-
+    def _create_widget_tree(self):
+        """Create tree view of widgets grouped by category"""
+        # Group widgets by category
+        categories = {}
         for widget_info in self.widgets_info:
-            # Create button frame
-            btn_frame = ttk.Frame(self.grid_frame, relief=tk.RAISED, borderwidth=1)
-            btn_frame.grid(row=row, column=col, padx=5, pady=5, sticky="nsew")
+            category = widget_info['category']
+            if category not in categories:
+                categories[category] = []
+            categories[category].append(widget_info)
 
-            # Icon label (using text as icon substitute)
-            icon_label = ttk.Label(
-                btn_frame,
-                text=widget_info['icon'],
-                font=('Arial', 16)
-            )
-            icon_label.pack(pady=(5, 2))
+        # Create tree items for each category and its widgets
+        for category, widgets in categories.items():
+            # Create category node
+            category_item = self.tree.insert("", "end", text=category, open=True)
 
-            # Widget name button
-            btn = ttk.Button(
-                btn_frame,
-                text=widget_info['name'],
-                command=lambda wi=widget_info: self._add_widget(wi),
-                width=12
-            )
-            btn.pack(pady=(0, 5))
+            # Add widgets as children of the category
+            for widget_info in widgets:
+                widget_item = self.tree.insert(
+                    category_item,
+                    "end",
+                    text=f"{widget_info['icon']} {widget_info['name']}",
+                    values=(widget_info['name'],),
+                    tags=(widget_info['name'],)
+                )
+                # Store widget info in the tree item
+                self.tree.set(widget_item, "type", widget_info['name'])
 
-            # Add tooltip
-            self._create_tooltip(btn, widget_info['tooltip'])
-
-            # Grid layout
-            col += 1
-            if col >= max_cols:
-                col = 0
-                row += 1
-
-        # Configure grid weights
-        for i in range(max_cols):
-            self.grid_frame.columnconfigure(i, weight=1)
-
-    def _create_tooltip(self, widget, text):
-        """Create tooltip for widget"""
-        def on_enter(event):
-            tooltip = tk.Toplevel()
-            tooltip.wm_overrideredirect(True)
-            tooltip.wm_geometry(f"+{event.x_root+10}+{event.y_root+10}")
-
-            label = tk.Label(
-                tooltip,
-                text=text,
-                background="lightyellow",
-                relief=tk.SOLID,
-                borderwidth=1,
-                font=('Arial', 9)
-            )
-            label.pack()
-
-            widget.tooltip = tooltip
-
-        def on_leave(event):
-            if hasattr(widget, 'tooltip'):
-                widget.tooltip.destroy()
-                del widget.tooltip
-
-        widget.bind("<Enter>", on_enter)
-        widget.bind("<Leave>", on_leave)
+    def _on_tree_double_click(self, event):
+        """Handle double-click on tree item to add widget"""
+        item = self.tree.selection()[0] if self.tree.selection() else None
+        if item:
+            parent = self.tree.parent(item)
+            if parent:  # Only process widget items (not categories)
+                widget_name = self.tree.item(item, "text").split(" ", 1)[1]  # Remove icon
+                for widget_info in self.widgets_info:
+                    if widget_info['name'] == widget_name:
+                        self._add_widget(widget_info)
+                        break
 
     def _add_widget(self, widget_info):
         """Add widget to layout"""

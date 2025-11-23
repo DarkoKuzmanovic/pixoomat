@@ -18,15 +18,9 @@ class WidgetFactory:
         self._initialize_builtin_widgets()
 
     def _initialize_builtin_widgets(self):
-        """Initialize built-in widget classes"""
-        try:
-            from widgets import ClockWidget, WeatherWidget
-            self._builtin_widgets = {
-                'ClockWidget': ClockWidget,
-                'WeatherWidget': WeatherWidget
-            }
-        except ImportError as e:
-            print(f"Warning: Could not import built-in widgets: {e}")
+        """Initialize built-in widget classes - now using plugin system"""
+        # Built-in widgets are now handled by the plugin system
+        self._builtin_widgets = {}
 
     def _get_plugin_manager(self):
         """Get the plugin manager instance"""

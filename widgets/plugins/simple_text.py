@@ -9,12 +9,8 @@ from typing import Dict, Any, Tuple, List, Optional
 from PIL import Image, ImageDraw, ImageFont
 import os
 
-try:
-    from ..base_widget import BaseWidget
-    from ..plugin_system import WidgetPlugin, WidgetMetadata
-except ImportError:
-    from base_widget import BaseWidget
-    from plugin_system import WidgetPlugin, WidgetMetadata
+from widgets.base_widget import BaseWidget
+from widgets.plugin_system import WidgetPlugin, WidgetMetadata
 
 
 class SimpleTextWidget(BaseWidget):

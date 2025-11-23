@@ -11,7 +11,7 @@ from typing import Optional, Dict, Any
 from pixoo import Pixoo
 from pixoo_client import CustomPixoo
 from config import PixoomatConfig, create_argument_parser
-from widgets import ClockWidget, WeatherWidget
+from widgets import get_plugin_manager
 from layout_manager import LayoutManager
 from device_discovery import PixooDiscovery, test_connection
 from weather_service import WeatherService
@@ -42,36 +42,41 @@ class PixoomatApp:
 
     def _setup_default_widgets(self):
         """Setup default widgets for backward compatibility"""
+        plugin_manager = get_plugin_manager()
+
         # Create clock widget
-        clock_widget = ClockWidget()
-        clock_widget.update_interval = self.config.update_interval
-        clock_widget.set_property('time_format', self.config.time_format)
-        clock_widget.set_property('text_color', self.config.text_color)
+        clock_widget = plugin_manager.create_widget("Clock")
+        if clock_widget:
+            clock_widget.update_interval = self.config.update_interval
+            clock_widget.set_property('time_format', self.config.time_format)
+            clock_widget.set_property('text_color', self.config.text_color)
 
-        # Center the clock widget
-        clock_x = self.config.screen_size // 2 - clock_widget.width // 2
-        clock_y = self.config.screen_size // 2 - clock_widget.height // 2
-        clock_widget.set_position(clock_x, clock_y)
+            # Center clock widget
+            clock_x = self.config.screen_size // 2 - clock_widget.width // 2
+            clock_y = self.config.screen_size // 2 - clock_widget.height // 2
+            clock_widget.set_position(clock_x, clock_y)
 
-        # Add to layout
-        self.layout_manager.add_widget(clock_widget)
+            # Add to layout
+            self.layout_manager.add_widget(clock_widget)
 
         # Create weather widget if enabled
         if self.config.show_weather and self.weather_service:
-            weather_widget = WeatherWidget()
-            weather_widget.set_property('text_color', self.config.text_color)
+            weather_widget = plugin_manager.create_widget("Weather")
+            if weather_widget:
+                weather_widget.set_property('text_color', self.config.text_color)
 
-            # Position weather widget at bottom right
-            weather_x = self.config.screen_size - weather_widget.width - 2
-            weather_y = self.config.screen_size - weather_widget.height - 2
-            weather_widget.set_position(weather_x, weather_y)
-            weather_widget.z_index = 1  # Place above clock if overlapping
+                # Position weather widget at bottom right
+                weather_x = self.config.screen_size - weather_widget.width - 2
+                weather_y = self.config.screen_size - weather_widget.height - 2
+                weather_widget.set_position(weather_x, weather_y)
+                weather_widget.z_index = 1  # Place above clock if overlapping
 
-            # Connect weather service to widget
-            weather_widget.get_weather_data = self.weather_service.get_weather
+                # Connect weather service to widget
+                if hasattr(weather_widget, 'get_weather_data'):
+                    weather_widget.get_weather_data = self.weather_service.get_weather
 
-            # Add to layout
-            self.layout_manager.add_widget(weather_widget)
+                # Add to layout
+                self.layout_manager.add_widget(weather_widget)
 
         # Set background color
         self.layout_manager.background_color = self.config.background_color
@@ -87,8 +92,9 @@ class PixoomatApp:
             # Connect weather service to weather widgets
             if self.weather_service:
                 for widget in self.layout_manager.widgets:
-                    if isinstance(widget, WeatherWidget):
-                        widget.get_weather_data = self.weather_service.get_weather
+                    if widget.__class__.__name__ == 'WeatherWidget' or 'Weather' in widget.__class__.__name__:
+                        if hasattr(widget, 'get_weather_data'):
+                            widget.get_weather_data = self.weather_service.get_weather
 
             print(f"Loaded layout from {layout_config_path}")
         except Exception as e:
