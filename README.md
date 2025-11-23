@@ -1,6 +1,6 @@
 # Pixoomat
 
-## **Display current time on your Divoom Pixoo 64 via WiFi**
+## Display current time on your Divoom Pixoo 64 via WiFi
 
 Pixoomat is a Python application that connects to your Divoom Pixoo 64 device and displays the current time. It supports automatic device discovery, multiple time formats, and robust error handling.
 
@@ -224,7 +224,7 @@ Debug mode shows:
 
 ## 🏗️ Project Structure
 
-```dash
+```bash
 pixoomat/
 ├── main.py              # Main application and entry point
 ├── config.py            # Configuration management
@@ -247,6 +247,8 @@ pixoomat/
 ├── requirements.txt      # Python dependencies
 └── README.md           # This file
 ```
+
+````
 
 ## 📚 Dependencies
 
@@ -281,7 +283,7 @@ python tests/test_gui_advanced.py
 # Edge cases and fixes validation
 python tests/test_edge_cases.py
 python tests/test_fixes_validation.py
-```
+````
 
 ## 🤝 Contributing
 
@@ -306,7 +308,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Network**: Place Pixoo close to router for better connectivity
 - **Power**: Use USB power for stability vs battery
 - **Brightness**: Lower brightness extends device lifespan
-- **Widget Development**: Create custom widgets using the plugin system - see [Widget Development Guide](WIDGET_DEVELOPMENT.md)
+- **Widget Development**: Create custom widgets using the plugin system - see [Widget Development Guide](docs/WIDGET_DEVELOPMENT.md)
 - **System Stats**: The System Stats widget requires psutil and may need elevated permissions on some systems
 
 ## 🆘 Support

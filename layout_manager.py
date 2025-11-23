@@ -87,7 +87,7 @@ class WidgetFactory:
 
         return widget
 
-    def _create_plugin_widget(self, widget_class: Type[BaseWidget], widget_data: Dict[str, Any], screen_size: int) -> BaseWidget:
+    def _create_plugin_widget(self, widget_class: Type[BaseWidget], widget_data: Dict[str, Any], screen_size: int) -> Optional[BaseWidget]:
         """Create a plugin widget from data"""
         # Extract widget-specific properties from the top level for backward compatibility
         kwargs = {
@@ -144,7 +144,7 @@ class LayoutManager:
         """
         self.screen_size = screen_size
         self.widgets: List[BaseWidget] = []
-        self.background_color = (0, 0, 0)  # Default black background
+        self.background_color: Tuple[int, int, int] = (0, 0, 0)  # Default black background
 
     def add_widget(self, widget: BaseWidget):
         """

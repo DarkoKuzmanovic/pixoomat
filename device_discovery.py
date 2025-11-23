@@ -4,7 +4,7 @@ Device discovery functionality for Pixoomat
 import socket
 import time
 from typing import List, Optional
-from zeroconf import ServiceBrowser, Zeroconf
+from zeroconf import ServiceBrowser, ServiceListener, Zeroconf
 
 
 class PixooDiscovery:
@@ -64,12 +64,12 @@ class PixooDiscovery:
         """Discover devices using mDNS/Bonjour"""
         print("Discovering Pixoo devices using mDNS...")
 
-        class PixooListener:
+        class PixooListener(ServiceListener):
             def __init__(self):
                 self.devices = []
 
             def add_service(self, zeroconf, service_type, name):
-                if self.DEVICE_NAME_PREFIX in name:
+                if PixooDiscovery.DEVICE_NAME_PREFIX in name:
                     try:
                         info = zeroconf.get_service_info(service_type, name)
                         if info and info.addresses:
@@ -176,7 +176,7 @@ def test_connection(ip: str) -> bool:
         from pixoo import Pixoo
         device = Pixoo(ip, debug=False)
         # Try to get device info as a connection test
-        device.fill(0, 0, 0)  # Clear screen
+        device.fill((0, 0, 0))  # Clear screen
         device.push()
         print(f"✅ Successfully connected to Pixoo at {ip}")
         return True

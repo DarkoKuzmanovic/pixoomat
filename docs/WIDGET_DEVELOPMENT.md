@@ -4,7 +4,7 @@ This guide explains how to create custom widgets for Pixoomat using the plugin s
 
 ## 📖 Related Documentation
 
-- **[README.md](README.md)** - Main project documentation with quick start guide and configuration options
+- **[README.md](../README.md)** - Main project documentation with quick start guide and configuration options
 - **[AGENTS.md](AGENTS.md)** - Agent-specific information and development patterns
 - **[WIDGET_DEVELOPMENT.md](WIDGET_DEVELOPMENT.md)** - This file - Comprehensive widget development guide
 
@@ -965,56 +965,56 @@ def test_cross_platform():
 
 ### Key Insights from Widget Development
 
-**1. Property Schema Evolution**
+### 1. Property Schema Evolution
 
 - Started with basic types (string, integer, boolean, color)
 - Discovered need for advanced types (select, multiselect, checkbox)
 - Property schemas should be comprehensive but not overly complex
 - Default values should be sensible and useful out-of-the-box
 
-**2. Screen Size Scaling Challenges**
+### 2. Screen Size Scaling Challenges
 
 - Scaling is not linear - different widgets need different approaches
 - Content-aware scaling often works better than simple multiplication
 - Minimum size constraints are crucial for usability
 - Text-based widgets need special consideration for character width
 
-**3. Update Interval Strategies**
+### 3. Update Interval Strategies
 
 - Not all widgets need the same update frequency
 - High-frequency updates should be used sparingly
 - External API calls should be cached and rate-limited
 - User expectations vary by widget type
 
-**4. Error Handling Patterns**
+### 4. Error Handling Patterns
 
 - Graceful degradation is more important than perfect functionality
 - Input validation should happen early and provide clear feedback
 - External dependencies should fail safely
 - Error states should be visually distinct
 
-**5. Rendering Optimization**
+### 5. Rendering Optimization
 
 - Small displays require careful font and color management
 - Caching expensive operations (like font loading) improves performance
 - Multi-line text support is essential for complex content
 - Positioning algorithms need to be robust
 
-**6. Testing Best Practices**
+### 6. Testing Best Practices
 
 - Comprehensive testing requires multiple approaches
 - Serialization/deserialization testing is critical for persistence
 - Error handling tests should cover edge cases
 - Performance testing ensures widgets don't impact system responsiveness
 
-**7. Plugin System Benefits**
+### 7. Plugin System Benefits
 
 - Dynamic loading enables easy extension
 - Plugin architecture encourages consistent interfaces
 - Metadata helps with organization and discovery
 - Versioning allows for backward compatibility
 
-**8. User Experience Considerations**
+### 8. User Experience Considerations
 
 - Defaults should work well for most users
 - Configuration options should be intuitive
@@ -1023,32 +1023,32 @@ def test_cross_platform():
 
 ### Development Patterns to Avoid
 
-**1. Hardcoded Dimensions**
+### 1. Hardcoded Dimensions
 
 - Always scale based on screen size
 - Use relative sizing rather than absolute values
 - Consider content-aware sizing for dynamic widgets
 
-**2. Inconsistent Error Handling**
+### 2. Inconsistent Error Handling
 
 - Implement error handling consistently across all widgets
 - Provide meaningful error messages
 - Ensure widgets continue functioning even when data is unavailable
 
-**3. Neglecting Testing**
+### 3. Neglecting Testing
 
 - Test all widget functionality thoroughly
 - Include edge cases and error scenarios
 - Verify serialization works correctly
 - Test across different screen sizes
 
-**4. Over-Engineering**
+### 4. Over-Engineering
 
 - Keep widgets focused on their core functionality
 - Avoid adding unnecessary complexity
 - Balance features with maintainability
 
-**5. Ignoring Performance**
+### 5. Ignoring Performance
 
 - Optimize rendering for small displays
 - Cache expensive operations

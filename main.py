@@ -15,6 +15,7 @@ from widgets import get_plugin_manager
 from layout_manager import LayoutManager
 from device_discovery import PixooDiscovery, test_connection
 from weather_service import WeatherService
+from widgets.plugins.weather_widget import WeatherWidget
 
 
 # CustomPixoo class moved to pixoo_client.py
@@ -72,7 +73,7 @@ class PixoomatApp:
                 weather_widget.z_index = 1  # Place above clock if overlapping
 
                 # Connect weather service to widget
-                if hasattr(weather_widget, 'get_weather_data'):
+                if isinstance(weather_widget, WeatherWidget):
                     weather_widget.get_weather_data = self.weather_service.get_weather
 
                 # Add to layout
@@ -92,9 +93,8 @@ class PixoomatApp:
             # Connect weather service to weather widgets
             if self.weather_service:
                 for widget in self.layout_manager.widgets:
-                    if widget.__class__.__name__ == 'WeatherWidget' or 'Weather' in widget.__class__.__name__:
-                        if hasattr(widget, 'get_weather_data'):
-                            widget.get_weather_data = self.weather_service.get_weather
+                    if isinstance(widget, WeatherWidget):
+                        widget.get_weather_data = self.weather_service.get_weather
 
             print(f"Loaded layout from {layout_config_path}")
         except Exception as e:
@@ -295,7 +295,7 @@ class PixoomatApp:
         return 0
 
 
-def load_config(args) -> PixoomatConfig:
+def load_config(args) -> Optional[PixoomatConfig]:
     """Load configuration from various sources"""
     config = PixoomatConfig()
 

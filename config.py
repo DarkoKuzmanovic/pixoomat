@@ -72,7 +72,10 @@ class PixoomatConfig:
         # Parse color if provided
         if args.color:
             try:
-                config.text_color = tuple(map(int, args.color.split(',')))
+                color_values = tuple(map(int, args.color.split(',')))
+                if len(color_values) != 3:
+                    raise ValueError("Color must have exactly 3 values (R,G,B)")
+                config.text_color = color_values
             except ValueError:
                 raise ValueError("Color must be in format R,G,B (e.g., 255,255,255)")
 
@@ -102,20 +105,34 @@ class PixoomatConfig:
         config = cls()
 
         config.ip_address = os.getenv('PIXOO_IP')
-        if os.getenv('PIXOO_PORT'):
-            config.port = int(os.getenv('PIXOO_PORT'))
-        if os.getenv('PIXOO_SCREEN_SIZE'):
-            config.screen_size = int(os.getenv('PIXOO_SCREEN_SIZE'))
-        if os.getenv('PIXOO_BRIGHTNESS'):
-            config.brightness = int(os.getenv('PIXOO_BRIGHTNESS'))
-        if os.getenv('PIXOO_TIME_FORMAT'):
-            config.time_format = os.getenv('PIXOO_TIME_FORMAT')
-        if os.getenv('PIXOO_UPDATE_INTERVAL'):
-            config.update_interval = int(os.getenv('PIXOO_UPDATE_INTERVAL'))
-        if os.getenv('PIXOO_DEBUG'):
-            config.debug = os.getenv('PIXOO_DEBUG').lower() == 'true'
-        if os.getenv('PIXOO_SHOW_WEATHER'):
-            config.show_weather = os.getenv('PIXOO_SHOW_WEATHER').lower() == 'true'
+
+        port_env = os.getenv('PIXOO_PORT')
+        if port_env:
+            config.port = int(port_env)
+
+        screen_size_env = os.getenv('PIXOO_SCREEN_SIZE')
+        if screen_size_env:
+            config.screen_size = int(screen_size_env)
+
+        brightness_env = os.getenv('PIXOO_BRIGHTNESS')
+        if brightness_env:
+            config.brightness = int(brightness_env)
+
+        time_format_env = os.getenv('PIXOO_TIME_FORMAT')
+        if time_format_env:
+            config.time_format = time_format_env
+
+        update_interval_env = os.getenv('PIXOO_UPDATE_INTERVAL')
+        if update_interval_env:
+            config.update_interval = int(update_interval_env)
+
+        debug_env = os.getenv('PIXOO_DEBUG')
+        if debug_env:
+            config.debug = debug_env.lower() == 'true'
+
+        show_weather_env = os.getenv('PIXOO_SHOW_WEATHER')
+        if show_weather_env:
+            config.show_weather = show_weather_env.lower() == 'true'
 
         return config
 

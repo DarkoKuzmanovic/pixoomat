@@ -4,9 +4,9 @@ This guide provides essential information for agents working with the Pixoomat c
 
 ## 📖 Documentation
 
-- **[README.md](README.md)** - Main project documentation with quick start guide and configuration options
-- **[WIDGET_DEVELOPMENT.md](WIDGET_DEVELOPMENT.md)** - Comprehensive guide for creating custom widgets
-- **[AGENTS.md](AGENTS.md)** - This file - Agent-specific information and development patterns
+- **[README.md](../README.md)** - Main project documentation with quick start guide and configuration options
+- **[WIDGET_DEVELOPMENT.md](./WIDGET_DEVELOPMENT.md)** - Comprehensive guide for creating custom widgets
+- **[AGENTS.md](./AGENTS.md)** - This file - Agent-specific information and development patterns
 
 ## Project Overview
 

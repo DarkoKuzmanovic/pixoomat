@@ -4,7 +4,7 @@ Compact main GUI window for Pixoomat with improved layout and accessibility
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog
 import copy
-from typing import Optional, Union, Tuple
+from typing import Optional, Union, Tuple, Any
 
 from layout_manager import LayoutManager
 from widgets import get_plugin_manager
@@ -16,6 +16,7 @@ from gui.toolbar import MainToolbar
 from gui.file_operations import FileOperations
 from gui.undo_manager import UndoManager
 from weather_service import WeatherService
+from widgets.plugins.weather_widget import WeatherWidget
 
 
 def run_gui(config: PixoomatConfig) -> int:
@@ -54,7 +55,7 @@ class CompactPixoomatGUI:
         # GUI elements
         self.selected_widget = None
         self.drag_data = {"x": 0, "y": 0, "widget": None}
-        self.pixoo = None
+        self.pixoo: Optional[Any] = None
         self.weather_service = WeatherService()
 
         # Zoom and canvas settings
@@ -735,12 +736,14 @@ Features:
             self.drag_data = {"x": device_x - widget.x, "y": device_y - widget.y, "widget": widget}
 
             # Update property panel
-            self.property_panel.set_widget(widget)
+            if self.property_panel:
+                self.property_panel.set_widget(widget)
         else:
             # Deselect
             self.selected_widget = None
             self.drag_data = {"x": 0, "y": 0, "widget": None}
-            self.property_panel.set_widget(None)
+            if self.property_panel:
+                self.property_panel.set_widget(None)
 
         # Update canvas and widget list
         self._update_canvas()
@@ -820,12 +823,14 @@ Features:
             self.pixoo = pixoo_or_action
             if pixoo_or_action:
                 self.update_status("Connected to device")
-                self.toolbar.set_connection_state(True)
+                if self.toolbar:
+                    self.toolbar.set_connection_state(True)
                 # Apply current layout to device
                 self._apply_to_device()
             else:
                 self.update_status("Disconnected from device")
-                self.toolbar.set_connection_state(False)
+                if self.toolbar:
+                    self.toolbar.set_connection_state(False)
 
     def _add_widget(self, widget):
         """Add a widget to the layout"""
@@ -874,7 +879,7 @@ Features:
         widget = plugin_manager.create_widget("Weather")
         if widget:
             # Connect weather service
-            if hasattr(widget, 'get_weather_data'):
+            if hasattr(widget, 'get_weather_data') and isinstance(widget, WeatherWidget):
                 widget.get_weather_data = self.weather_service.get_weather
             self._add_widget(widget)
 
@@ -897,7 +902,8 @@ Features:
 
         self.layout_manager.remove_widget(self.selected_widget)
         self.selected_widget = None
-        self.property_panel.set_widget(None)
+        if self.property_panel:
+            self.property_panel.set_widget(None)
 
         # Save undo state
         self.undo_manager.save_state("Removed widget", layout_state)
@@ -1047,7 +1053,7 @@ Features:
                 weather_widget.z_index = 1  # Place above clock if overlapping
 
                 # Connect weather service to widget
-                if hasattr(weather_widget, 'get_weather_data'):
+                if hasattr(weather_widget, 'get_weather_data') and isinstance(weather_widget, WeatherWidget):
                     weather_widget.get_weather_data = self.weather_service.get_weather
 
                 # Add to layout
@@ -1072,7 +1078,7 @@ Features:
             # Connect weather service to weather widgets
             for widget in self.layout_manager.widgets:
                 if widget.__class__.__name__ == 'WeatherWidget' or 'Weather' in widget.__class__.__name__:
-                    if hasattr(widget, 'get_weather_data'):
+                    if hasattr(widget, 'get_weather_data') and isinstance(widget, WeatherWidget):
                         widget.get_weather_data = self.weather_service.get_weather
 
             # Update display
@@ -1093,7 +1099,8 @@ Features:
                 self.layout_manager.widgets.clear()
                 self._update_canvas()
                 self._update_active_widgets_list()
-                self.property_panel.set_widget(None)
+                if self.property_panel:
+                    self.property_panel.set_widget(None)
 
     def _open_layout(self):
         """Open layout from file"""
@@ -1101,7 +1108,8 @@ Features:
             if self.file_ops.open_layout():
                 self._update_canvas()
                 self._update_active_widgets_list()
-                self.property_panel.set_widget(None)
+                if self.property_panel:
+                    self.property_panel.set_widget(None)
 
     def _save_layout(self):
         """Save layout to file"""
@@ -1122,7 +1130,8 @@ Features:
         """Load configuration from file"""
         if self.file_ops:
             if self.file_ops.open_config():
-                self.device_panel.set_config(self.config)
+                if self.device_panel:
+                    self.device_panel.set_config(self.config)
 
     def _toggle_connection(self):
         """Toggle device connection"""
@@ -1144,20 +1153,26 @@ Features:
 
                 # Clear screen with background color
                 bg_color = render_data['background']['color']
-                self.pixoo.fill(bg_color)
+                if self.pixoo:
+                    try:
+                        self.pixoo.fill(bg_color)
 
-                # Draw each widget
-                for widget_data in render_data['widgets']:
-                    if widget_data['type'] == 'text':
-                        self.pixoo.draw_text(
-                            widget_data['text'],
-                            xy=(widget_data['x'], widget_data['y']),
-                            rgb=widget_data['color']
-                        )
-                    # Future: Handle other render types
+                        # Draw each widget
+                        for widget_data in render_data['widgets']:
+                            if widget_data['type'] == 'text':
+                                self.pixoo.draw_text(
+                                    widget_data['text'],
+                                    xy=(widget_data['x'], widget_data['y']),
+                                    rgb=widget_data['color']
+                                )
+                            # Future: Handle other render types
 
-                # Push to device
-                self.pixoo.push()
+                        # Push to device
+                        self.pixoo.push()
+                    except AttributeError as e:
+                        self.root.after(0, lambda: messagebox.showerror("Error", f"Device method not available: {e}"))
+                    except Exception as e:
+                        self.root.after(0, lambda: messagebox.showerror("Error", f"Failed to apply layout: {e}"))
 
                 self.root.after(0, lambda: self.update_status("Layout applied successfully"))
                 self.root.after(0, lambda: messagebox.showinfo("Success", "Layout applied to device!"))
@@ -1184,7 +1199,8 @@ Features:
             # Update display
             self._update_canvas()
             self._update_active_widgets_list()
-            self.property_panel.set_widget(None)
+            if self.property_panel:
+                self.property_panel.set_widget(None)
 
     def _redo(self):
         """Menu command for redo"""
@@ -1196,7 +1212,8 @@ Features:
             # Update display
             self._update_canvas()
             self._update_active_widgets_list()
-            self.property_panel.set_widget(None)
+            if self.property_panel:
+                self.property_panel.set_widget(None)
 
     def _update_active_widgets_list(self):
         """Update the active widgets list"""
@@ -1220,7 +1237,8 @@ Features:
         if index is not None and 0 <= index < len(self.layout_manager.widgets):
             widget = self.layout_manager.widgets[index]
             self.selected_widget = widget
-            self.property_panel.set_widget(widget)
+            if self.property_panel:
+                self.property_panel.set_widget(widget)
             self._update_canvas()
 
     def _select_widget_in_list(self, index: int):
