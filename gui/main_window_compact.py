@@ -105,6 +105,9 @@ class CompactPixoomatGUI:
         # Setup keyboard shortcuts
         self._setup_keyboard_shortcuts()
 
+        # Initialize toolbar state
+        self._update_toolbar_state()
+
     def _setup_window(self):
         """Setup main window properties"""
         self.root.title("Pixoomat - Compact Layout Designer")
@@ -201,7 +204,11 @@ class CompactPixoomatGUI:
 
     def _setup_toolbar(self):
         """Setup main toolbar"""
-        self.toolbar = MainToolbar(self.root, on_action=self._on_toolbar_action)
+        self.toolbar = MainToolbar(
+            self.root,
+            on_action=self._on_toolbar_action,
+            status_callback=self.update_status
+        )
         self.toolbar.frame.pack(side=tk.TOP, fill=tk.X)
 
     def _setup_main_area(self):
@@ -404,6 +411,7 @@ class CompactPixoomatGUI:
             "undo": self._undo,
             "redo": self._redo,
             "duplicate_widget": self._duplicate_widget,
+            "delete_widget": self._remove_widget,
             "toggle_connection": self._toggle_connection,
             "apply_to_device": self._apply_to_device,
             "zoom_in": self._zoom_in,
@@ -415,6 +423,29 @@ class CompactPixoomatGUI:
 
         if action in action_handlers:
             action_handlers[action]()
+            # Update toolbar state after action
+            self._update_toolbar_state()
+
+    def _update_toolbar_state(self):
+        """Update toolbar button states based on current application state"""
+        if not self.toolbar:
+            return
+
+        # Update undo/redo state
+        can_undo = self.undo_manager.can_undo()
+        can_redo = self.undo_manager.can_redo()
+        self.toolbar.set_undo_redo_state(can_undo, can_redo)
+
+        # Update selection state
+        has_selection = self.selected_widget is not None
+        self.toolbar.set_widget_selection_state(has_selection)
+
+        # Update connection state
+        connected = self.pixoo is not None
+        device_info = None
+        if connected and hasattr(self, 'device_panel') and self.device_panel:
+            device_info = getattr(self.device_panel, 'device_info', None)
+        self.toolbar.set_connection_state(connected, device_info)
 
     def _on_widget_palette_action(self, action):
         """Handle widget palette action"""
@@ -749,6 +780,9 @@ Features:
         self._update_canvas()
         self._update_active_widgets_list()
 
+        # Update toolbar state
+        self._update_toolbar_state()
+
     def _on_canvas_drag(self, event):
         """Handle canvas drag"""
         if not self.drag_data["widget"]:
@@ -779,6 +813,9 @@ Features:
         self._update_canvas()
         self._update_active_widgets_list()
 
+        # Update toolbar state
+        self._update_toolbar_state()
+
     def _on_canvas_release(self, event):
         """Handle canvas release"""
         self.drag_data = {"x": 0, "y": 0, "widget": None}
@@ -803,6 +840,9 @@ Features:
         self._update_canvas()
         self._update_active_widgets_list()
 
+        # Update toolbar state
+        self._update_toolbar_state()
+
     def _on_property_changed(self, widget):
         """Handle property change"""
         self._update_canvas()
@@ -823,14 +863,20 @@ Features:
             self.pixoo = pixoo_or_action
             if pixoo_or_action:
                 self.update_status("Connected to device")
+                device_info = None
+                if hasattr(self, 'device_panel') and self.device_panel:
+                    device_info = getattr(self.device_panel, 'device_info', None)
                 if self.toolbar:
-                    self.toolbar.set_connection_state(True)
+                    self.toolbar.set_connection_state(True, device_info)
                 # Apply current layout to device
                 self._apply_to_device()
             else:
                 self.update_status("Disconnected from device")
                 if self.toolbar:
                     self.toolbar.set_connection_state(False)
+
+            # Update toolbar state
+            self._update_toolbar_state()
 
     def _add_widget(self, widget):
         """Add a widget to the layout"""
@@ -865,6 +911,9 @@ Features:
         # Update display
         self._update_canvas()
         self._update_active_widgets_list()
+
+        # Update toolbar state
+        self._update_toolbar_state()
 
     def _add_clock_widget(self):
         """Add a clock widget"""
@@ -1201,6 +1250,9 @@ Features:
             self._update_active_widgets_list()
             if self.property_panel:
                 self.property_panel.set_widget(None)
+
+            # Update toolbar state
+            self._update_toolbar_state()
 
     def _redo(self):
         """Menu command for redo"""
